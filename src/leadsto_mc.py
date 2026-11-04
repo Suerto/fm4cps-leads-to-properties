@@ -2,7 +2,7 @@ import sys
 import pynusmv
 from pynusmv_lower_interface.nusmv.parser import parser
 
-from helpers import reachability
+from helpers import reachability, verify_region
 
 SPEC_TYPES = {
     "LTLSPEC": parser.TOK_LTLSPEC,
@@ -126,13 +126,15 @@ def check_leadsto_spec(spec):
     """
     if parse_formula(spec) is None:
         return None
-
+    
     model = pynusmv.glob.prop_database().master.bddFsm
     # This gives us the set of all reachable states, independently of the property
     reachable_states =  reachability.reachable_states(model)
     
-    # varphi = spec_to_bdd(model, parse_formula(spec)[1])
-        
+    varphi = ~ spec_to_bdd(model, parse_formula(spec)[1])
+
+    temp = verify_region.verify_region(model, varphi)
+
     return pynusmv.mc.check_explain_ltl_spec(spec)
 
 

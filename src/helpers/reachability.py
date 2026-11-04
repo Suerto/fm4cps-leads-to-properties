@@ -6,7 +6,7 @@ def reachable_states(model):
     """
     reachable_states = model.init
     new_reached_states = reachable_states
-
+    
     while not new_reached_states.is_false():
         new_reached_states = model.post(new_reached_states).diff(reachable_states)
         reachable_states = reachable_states.union(new_reached_states)

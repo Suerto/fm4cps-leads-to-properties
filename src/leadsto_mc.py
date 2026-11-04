@@ -2,6 +2,8 @@ import sys
 import pynusmv
 from pynusmv_lower_interface.nusmv.parser import parser
 
+from helpers import reachability
+
 SPEC_TYPES = {
     "LTLSPEC": parser.TOK_LTLSPEC,
     "CONTEXT": parser.CONTEXT,
@@ -125,15 +127,13 @@ def check_leadsto_spec(spec):
     if parse_formula(spec) is None:
         return None
 
-    # In order to access the BDD of the model, I use
     model = pynusmv.glob.prop_database().master.bddFsm
-    print(f"Initial states of the BDD: {model.count_states(model.init)}")
-    for state in model.pick_all_states(model.init):
-        print(state.get_str_values())
-
-
-    return [True, None]
-    # return pynusmv.mc.check_explain_ltl_spec(spec)
+    # This gives us the set of all reachable states, independently of the property
+    reachable_states =  reachability.reachable_states(model)
+    
+    # varphi = spec_to_bdd(model, parse_formula(spec)[1])
+        
+    return pynusmv.mc.check_explain_ltl_spec(spec)
 
 
 if __name__ == "__main__":

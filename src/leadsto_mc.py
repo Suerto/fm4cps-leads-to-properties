@@ -2,7 +2,7 @@ import sys
 import pynusmv
 from pynusmv_lower_interface.nusmv.parser import parser
 
-from helpers import reachability, verify_region
+from helpers import infinitely_true, reachability, counterexample
 
 SPEC_TYPES = {
     "LTLSPEC": parser.TOK_LTLSPEC,
@@ -118,7 +118,7 @@ def parse_formula(spec):
     return (f_formula, g_formula)
 
 
-def check_leadsto_spec(spec):
+def check_leadsto_spec(spec: pynusmv.prop.Spec) -> tuple[bool, dict]:
     """
     Return whether the loaded SMV model satisfies or not the leads-to formula
     `spec`, that is, whether all executions of the model satisfies `spec`
@@ -126,15 +126,20 @@ def check_leadsto_spec(spec):
     """
     if parse_formula(spec) is None:
         return None
-    
-    model = pynusmv.glob.prop_database().master.bddFsm
-    # This gives us the set of all reachable states, independently of the property
-    reachable_states =  reachability.reachable_states(model)
-    
-    varphi = ~ spec_to_bdd(model, parse_formula(spec)[1])
 
-    temp = verify_region.verify_region(model, varphi)
+    fsm = pynusmv.glob.prop_database().master.bddFsm
+    reachable_states = reachability.reachable_states(fsm)
 
+    f = spec_to_bdd(fsm, parse_formula(spec)[0])
+    negated_g = spec_to_bdd(fsm, parse_formula(spec)[1]).not_()
+
+    EG_negated_g = infinitely_true.infinitely_true(fsm, negated_g)
+    violation_states = negated_g.intersection(fsm.pre(EG_negated_g, f))
+
+    reachable_violations = reachable_states.intersection(violation_states)
+
+    # TODO: Counterexample algorithm
+    return [True, None] if reachable_violations.is_false() else [False, None]
     return pynusmv.mc.check_explain_ltl_spec(spec)
 
 
@@ -152,15 +157,15 @@ if __name__ == "__main__":
         spec = prop.expr
         print(spec)
         if prop.type != type_ltl:
-            print("property is not LTLSPEC, skipping")
+            print("property is not LTLSPEC, skipping\n\n")
             continue
         res = check_leadsto_spec(spec)
         if res is None:
-            print("Property is not a leads-to formula, skipping")
+            print("Property is not a leads-to formula, skipping\n\n")
         elif res[0] is True:
-            print("Property is respected")
+            print("Property is respected\n\n")
         elif res[0] is False:
-            print("Property is not respected")
+            print("Property is not respected\n\n")
             print("Counterexample:", res[1])
 
     pynusmv.init.deinit_nusmv()

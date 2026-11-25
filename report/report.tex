@@ -1,8 +1,10 @@
 \documentclass{article}
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
 \title{Formal Methods for Cyber-Physical Systems: Leads-To Properties}
-\author{Gingillino Aaron - Suar Alberto}
+\author{Suar Alberto}
 \date{November 2026}
 
 \begin{document}
@@ -10,5 +12,20 @@
 \maketitle
 
 \section*{Abstract}
+\textit{Leads-to properties} are a specific class of Linear Temporal Logic (LTL) specifications for transition systems, formally expressed as
+\[
+\square(f \rightarrow \Diamond g)
+\]
+where $f$ and $g$ are propositional Boolean combinations of atomic formulas without temporal operators. Informally, the formula requires that in every state of an execution ($\square$), whenever condition $f$ holds, condition $g$ must hold in the same state or in some subsequent state of that execution ($\Diamond$).
 
+In this report, I present a symbolic model-checking algorithm implemented in Python using the \texttt{pynusmv} library, which leverages Binary Decision Diagrams (BDDs) to represent and manipulate state regions. By combining symbolic forward reachability with backward pre-image refinement for infinite executions, my algorithm verifies whether a loaded SMV model satisfies a given leads-to specification \texttt{spec}. When the property holds, the algorithm returns \texttt{True}; when the property is falsified, it returns \texttt{False} together with a looping counterexample execution (lasso) demonstrating the violation.
+\section{Implementation}
+\subsection{Reachability Algorithm}
+\subsection{Infinite True Trace Algorithm}
+\subsection{Counterexample Algorithm}
+\section{Correctness}
+\subsection{Reachability Algorithm}
+\subsection{Infinite True Trace Algorithm}
+\subsection{Counterexample Algorithm}
+\section{Results and Considerations}
 \end{document}
